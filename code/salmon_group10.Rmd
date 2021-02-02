@@ -20,6 +20,7 @@ library(janitor)
 library(tsibble)
 library(feasts)
 library(lubridate)
+library(knitr)
 ```
 
 ```{r}
@@ -42,6 +43,15 @@ fish_ts <- fish %>%
 
 
 # Overview {.tabset}
+
+```{r echo=FALSE, out.width= '100%', out.height= '100%', fig.cap= "Salmon swim past Oregon Department of Fish and Wildlife's (ODFW) counting window at the Willamette Falls fishway. Photograph Credit: Eric Ollerenshaw, ODFW"}
+
+knitr::include_graphics(here("images", "fish_count_window.png"))
+```
+This report details adult fish passage for Coho, Jack Coho, and Steelhead salmon at the Willamette Falls fish ladder on the Willamette River in Oregon from 2001-01-01 to 2010-12-31. Included is a time series of adult salmon passage, seasonplots of passage, and annual totals  of passage for each species.
+
+
+The data used in this report can be accessed from  [Columbia River DART (Data Access in Real Time)](http://www.cbr.washington.edu/dart/query/adult_graph_text).  Columbia River DART is a data resource compiling information relating to the Columbia Basin salmon populations and environmental river conditions from federal, state, and tribal databases.
 
 ## Original time series 
 
