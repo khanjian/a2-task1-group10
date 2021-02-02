@@ -26,6 +26,16 @@ library(lubridate)
 fish <- read_csv(here("data", "willamette_fish_passage.csv"))
 ```
 
+```{r}
+fish_ts <- fish %>% 
+  clean_names() %>% 
+  mutate(date = lubridate::myd(date)) %>% 
+  select(date, coho, jack_coho, steelhead) %>% 
+  replace_na(list(coho = 0, jack_coho = 0, steelhead = 0)) %>% 
+  as_tsibble(key = NULL, index = date) 
+```
+
+
 # Overview {.tabset}
 
 ## Original time series 
