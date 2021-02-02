@@ -2,9 +2,40 @@
 title: "Task 1"
 author: "Roupen Khanjian, Genevieve Chiong, Katelin Seeto"
 date: "2/1/2021"
-output: html_document
+output:
+   html_document:
+     theme: darkly
+     code_folding: hide
+     toc: true
+     toc_float: true
+     number_sections: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(here)
+library(janitor)
+library(tsibble)
+library(feasts)
+library(lubridate)
 ```
+
+```{r}
+fish <- read_csv(here("data", "willamette_fish_passage.csv"))
+```
+
+# Overview {.tabset}
+
+## Original time series 
+
+## Seasonplots
+
+## Annual counts by species 
+
+
+
+
+
+
