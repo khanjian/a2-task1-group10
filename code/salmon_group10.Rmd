@@ -23,16 +23,21 @@ library(lubridate)
 ```
 
 ```{r}
+# Read in the data
 fish <- read_csv(here("data", "willamette_fish_passage.csv"))
 ```
 
 ```{r}
+# Wrangle the data
 fish_ts <- fish %>% 
   clean_names() %>% 
-  mutate(date = lubridate::myd(date)) %>% 
-  select(date, coho, jack_coho, steelhead) %>% 
-  replace_na(list(coho = 0, jack_coho = 0, steelhead = 0)) %>% 
-  as_tsibble(key = NULL, index = date) 
+  mutate(date = lubridate::myd(date)) %>% # Convert to date 
+  select(date, coho, jack_coho, steelhead) %>% # Select only for date and fish of interest
+  replace_na(list(coho = 0, jack_coho = 0, steelhead = 0)) %>%
+  pivot_longer(c(coho:steelhead),
+               names_to = "species", 
+               values_to = "count") %>% # Replace NA values with 0 
+  as_tsibble(key = species, index = date) # Convert to tsibble 
 ```
 
 
