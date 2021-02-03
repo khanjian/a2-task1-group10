@@ -69,13 +69,17 @@ The data used in this report can be accessed from  [Columbia River DART (Data Ac
 fish_month <- fish_ts %>% 
   group_by_key() %>% 
   index_by(yr_mo = ~yearmonth(.)) %>% # index by month to make seasonality clearer
-  summarise(monthly_mean_count = mean(count, na.rm = TRUE))
+  summarise(monthly_mean_count = mean(count, na.rm = TRUE)) %>% 
+  mutate(species = recode(species, 
+                          coho = "Coho",
+                          jack_coho = "Jack Coho",
+                          steelhead = "Steelhead"))
 
 fish_month %>% 
   gg_season(y = monthly_mean_count)+
   labs(x = "Month",
        y = "Mean monthly count", 
-       title = "Average monthly count of adult fish passage for Willamette fish ladder",
+       title = "Average monthly count of adult fish passage for Willamette fish ladder"
        )+
   theme_minimal()
              
