@@ -79,10 +79,8 @@ fish_month %>%
   gg_season(y = monthly_mean_count)+
   labs(x = "Month",
        y = "Mean monthly count", 
-       title = "Average monthly count of adult fish passage for Willamette fish ladder"
-       )+
-  theme_minimal()
-             
+       title = "Average monthly count of adult fish passage for Willamette fish ladder")+
+  theme_minimal()  
 ```
 
 
