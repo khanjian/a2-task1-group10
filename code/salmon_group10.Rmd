@@ -6,20 +6,21 @@ output:
    html_document:
      theme: darkly
      code_folding: hide
-     toc: true
-     toc_float: true
+     # removed toc
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
-library(tidyverse)
-library(here)
-library(janitor)
-library(tsibble)
-library(feasts)
-library(lubridate)
-library(knitr)
+library(tidyverse) # Easily Install and Load the 'Tidyverse'
+library(here) # A Simpler Way to Find Your Files
+library(janitor) # Simple Tools for Examining and Cleaning Dirty Data
+library(tsibble) # Tidy Temporal Data Frames and Tools
+library(feasts) # Feature Extraction and Statistics for Time Series
+library(lubridate) # Make Dealing with Dates a Little Easier
+library(knitr) # A General-Purpose Package for Dynamic Report Generation in R
+library(sf) # Simple Features for R
+library(tmap) # Thematic Maps
 ```
 
 ```{r}
@@ -58,10 +59,14 @@ This report includes is a time series of adult salmon passage, seasonplots of pa
 
 The data used in this report was accessed from  [Columbia River DART (Data Access in Real Time)](http://www.cbr.washington.edu/dart/query/adult_graph_text).  Columbia River DART is a data resource compiling information relating to the Columbia Basin salmon populations and environmental river conditions from federal, state, and tribal databases.
 
+```{r}
+### Insert map code here
+```
+
+
 ## Original time series 
 
-```{r,  fig.cap = "**Figure 1**. Time series of adult passage for Coho (teal), Jack Coho (magenta), and Steelhead (orange) salmon at Willamette Falls fish ladder on the Willamette River, Oregon between 2001-2010. Data: Columbia River DART. 2021."}
-
+```{r,  fig.cap = "**Figure 1**. Time series of adult passage for Coho (teal), Jack Coho (magenta), and Steelhead (orange) salmon at Willamette Falls fish ladder on the Willamette River, Oregon between 2001-2010. Data: Columbia River DART. 2021."} 
 fish_labels <- c("Coho", "Jack Coho", "Steelhead")
 names(fish_labels) <- c("coho", "jack_coho", "steelhead")
   
@@ -103,7 +108,41 @@ fish_month %>%
 ```
 
 
-## Annual counts by species 
+## Summary statistics and analysis 
+
+```{r, fig.cap = "**Figure 3**. Annual totals of adult passage for Coho, Jack Coho, and Steelhead salmon at Willamette Falls fish ladder on the Willamette River, Oregon between 2001-2010. Data: Columbia River DART. 2021."}
+
+fish_annual <- fish_ts %>% 
+  group_by_key() %>% 
+  index_by(yr = ~year(.)) %>% # index by year
+  summarise(annual_total = sum(count)) %>%  # get annual totals
+  mutate(year = factor(yr)) # convert year to a factor
+
+ggplot(data = fish_annual, 
+       aes(x = year, 
+           y = annual_total)) +
+  geom_col(aes(fill = annual_total)) + # 
+  scale_fill_viridis_c(option = "viridis") +
+  facet_grid(species~., 
+             scales = "free",
+             labeller = labeller(species = fish_labels)) +
+  labs(title = "Annual counts by species",
+       x = "Year",
+       y = "Annual totals",
+       fill = "Annual totals") +
+  theme_minimal() +
+  theme(axis.title = element_text(face = "bold", size = 12),
+        strip.text.y = element_text(face = "bold", size = 12),
+        axis.text.y = element_text(face = "bold", size = 10),
+        axis.text.x = element_text(face = "bold", size = 11),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.text = element_text(face = "bold", size = 10),
+        legend.title = element_text(face = "bold", size = 10.5),
+        plot.title = element_text(face = "bold", size = 14)
+        )
+
+```
 
 
 
