@@ -6,7 +6,6 @@ output:
    html_document:
      theme: darkly
      code_folding: hide
-     # removed toc
 ---
 
 ```{r setup, include=FALSE}
@@ -42,7 +41,7 @@ fish_ts <- fish %>%
 ```
 
 
-# Overview {.tabset}
+## Overview {.tabset}
 
 ```{r echo=FALSE, out.width= '100%', out.height= '100%', fig.cap= "Salmon swim past Oregon Department of Fish and Wildlife's (ODFW) counting window at the Willamette Falls fishway. Photograph Credit: Eric Ollerenshaw, ODFW"}
 
@@ -64,25 +63,27 @@ The data used in this report was accessed from  [Columbia River DART (Data Acces
 ```
 
 
-## Original time series 
+### Original time series 
 
 ```{r,  fig.cap = "**Figure 1**. Time series of adult passage for Coho (teal), Jack Coho (magenta), and Steelhead (orange) salmon at Willamette Falls fish ladder on the Willamette River, Oregon between 2001-2010. Data: Columbia River DART. 2021."} 
 fish_labels <- c("Coho", "Jack Coho", "Steelhead")
 names(fish_labels) <- c("coho", "jack_coho", "steelhead")
-  
+
 ggplot(data = fish_ts, 
        aes(x = date, 
-           y = count,
-           title = )) +
+           y = count)) +
   geom_line(aes(color = species)) +
-  facet_wrap(~species, 
-             scales = "free_y",
-             labeller = labeller(species = fish_labels)) + 
+  facet_grid(species~., 
+             scales = "free",
+             labeller = labeller(species = fish_labels)) +
   scale_color_manual(values=c("cadetblue4", "mediumvioletred", "orange")) +
   labs(x = "\nYear",
-       y = "Adult Salmon Count\n") +
+       y = "Adult Salmon Count",
+       title = "Salmon Adult Passage at Willamette Falls, OR\n") +
   theme_minimal() +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+       axis.title = element_text(face = "bold", size = 12),
+      plot.title = element_text(face = "bold", size = 12))
 ```
 
 - Coho salmon passage fluctuated between lower and higher counts every couple years before greatly increasing in 2009-2010, doubling in counts from 2008. 
@@ -90,7 +91,7 @@ ggplot(data = fish_ts,
 - Steelhead salmon passage remained relatively stable between 2001-2010.
 
 
-## Seasonplots
+### Seasonplots
 
 ```{r}
 fish_month <- fish_ts %>% 
@@ -108,7 +109,7 @@ fish_month %>%
 ```
 
 
-## Summary statistics and analysis 
+### Summary statistics and analysis 
 
 ```{r, fig.cap = "**Figure 3**. Annual totals of adult passage for Coho, Jack Coho, and Steelhead salmon at Willamette Falls fish ladder on the Willamette River, Oregon between 2001-2010. Data: Columbia River DART. 2021."}
 
