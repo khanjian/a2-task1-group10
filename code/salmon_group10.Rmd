@@ -18,6 +18,7 @@ library(tsibble) # Tidy Temporal Data Frames and Tools
 library(feasts) # Feature Extraction and Statistics for Time Series
 library(lubridate) # Make Dealing with Dates a Little Easier
 library(knitr) # A General-Purpose Package for Dynamic Report Generation in R
+library(RColorBrewer) # Premade Color Palettes
 library(ggmap) # Spatial Visualization with ggplot2, CRAN v3.0.0 # Spatial Visualization with ggplot2
 library(maps) # Draw Geographical Maps, CRAN v3.3.0 # Draw Geographical Maps
 library(mapdata) # Extra Map Databases, CRAN v2.3.0 # Extra Map Databases
@@ -150,20 +151,35 @@ ggplot(data = fish_ts,
 
 ### Seasonplots
 
-```{r}
-fish_month <- fish_ts %>% 
-  group_by_key() %>% 
-  index_by(yr_mo = ~yearmonth(.)) %>% # index by month to make seasonality clearer
-  summarise(monthly_mean_count = mean(count, na.rm = TRUE))
+```{r fig.cap = "**Figure 2**. Mean count of adult Coho, Jack Coho, and Steelhead passage at the Willamette fish ladder between 2001-2010. Data: Columbia River DART. 2021."}
+
+fish_month <- fish_ts %>%
+  group_by_key() %>% #key = species
+  index_by(yr_mo = ~yearmonth(.)) %>% # group by time index year month
+  summarise(monthly_mean_count = mean(count, na.rm = TRUE)) %>% # mean count for each month 
+  mutate(species = recode(species,
+                          coho = "Coho",
+                          jack_coho = "Jack Coho",
+                          steelhead = "Steelhead"))
+
+
 
 fish_month %>% 
-  gg_season(y = monthly_mean_count) +
+  gg_season(y = monthly_mean_count, 
+            pal = (brewer.pal(10, "Paired" ))) +
   labs(x = "Month",
        y = "Mean monthly count", 
-       title = "Average monthly count of adult fish passage for Willamette fish ladder") +
-  theme_minimal()
-             
+       title = "Average monthly count of adult fish passage for Willamette fish ladder",
+       color = "Year") +
+  theme_minimal() +  
+  theme(axis.title = element_text(face = "bold", size = 12),
+        plot.title = element_text(face = "bold", size = 12),
+        strip.text = element_text( size = 12))
+
+
 ```
+- Steelhead passage at the Willamette fish ladder begins in December, and peaks in late spring/early summer with May and June being the months with the highest mean count. In July, the number of Steelhead counted decreases and remains low through the end of fall. 
+- Coho and Jack Coho passage occurs during  the fall months of September and October, with the highest mean counts occurring in September. Little to no Coho or Jack Coho are counted after November.  
 
 
 ### Summary statistics and analysis 
