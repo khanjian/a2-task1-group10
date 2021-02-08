@@ -1,26 +1,26 @@
 ---
-title: "Task 1"
+title: "Willamette Falls Fish Passage Time Series"
 author: "Roupen Khanjian, Genevieve Chiong, Katelin Seeto"
 date: "2/1/2021"
 output:
    html_document:
      theme: darkly
      code_folding: hide
-     toc: true
-     toc_float: true
-     number_sections: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
-library(tidyverse)
-library(here)
-library(janitor)
-library(tsibble)
-library(feasts)
-library(lubridate)
-library(knitr)
+library(tidyverse) # Easily Install and Load the 'Tidyverse'
+library(here) # A Simpler Way to Find Your Files
+library(janitor) # Simple Tools for Examining and Cleaning Dirty Data
+library(tsibble) # Tidy Temporal Data Frames and Tools
+library(feasts) # Feature Extraction and Statistics for Time Series
+library(lubridate) # Make Dealing with Dates a Little Easier
+library(knitr) # A General-Purpose Package for Dynamic Report Generation in R
+library(sf) # Simple Features for R
+library(tmap) # Thematic Maps
+library(RColorBrewer) # Premade Color Palettes
 ```
 
 ```{r}
@@ -34,15 +34,15 @@ fish_ts <- fish %>%
   clean_names() %>% 
   mutate(date = lubridate::mdy(date)) %>% # Convert to date 
   select(date, coho, jack_coho, steelhead) %>% # Select only for date and fish of interest
-  replace_na(list(coho = 0, jack_coho = 0, steelhead = 0)) %>%
+  replace_na(list(coho = 0, jack_coho = 0, steelhead = 0)) %>% # Replace NA values with 0 
   pivot_longer(c(coho:steelhead),
                names_to = "species", 
-               values_to = "count") %>% # Replace NA values with 0 
+               values_to = "count") %>% 
   as_tsibble(key = species, index = date) # Convert to tsibble 
 ```
 
 
-# Overview {.tabset}
+## Overview {.tabset}
 
 ```{r echo=FALSE, out.width= '100%', out.height= '100%', fig.cap= "Salmon swim past Oregon Department of Fish and Wildlife's (ODFW) counting window at the Willamette Falls fishway. Photograph Credit: Eric Ollerenshaw, ODFW"}
 
@@ -54,37 +54,112 @@ This report details adult fish passage for Coho, Jack Coho, and Steelhead salmon
 * 2008-08-26 to 2008-09-21  
 * 2010-08-23 to 2010-08-27  
 
-Included is a time series of adult salmon passage, seasonplots of passage, and annual totals  of passage for each species.
+This report includes is a time series of adult salmon passage, seasonplots of passage, and annual totals  of passage for each species.
 
 
-
-
-The data used in this report can be accessed from  [Columbia River DART (Data Access in Real Time)](http://www.cbr.washington.edu/dart/query/adult_graph_text).  Columbia River DART is a data resource compiling information relating to the Columbia Basin salmon populations and environmental river conditions from federal, state, and tribal databases.
-
-## Original time series 
-
-## Seasonplots
+The data used in this report was accessed from  [Columbia River DART (Data Access in Real Time)](http://www.cbr.washington.edu/dart/query/adult_graph_text).  Columbia River DART is a data resource compiling information relating to the Columbia Basin salmon populations and environmental river conditions from federal, state, and tribal databases.
 
 ```{r}
-fish_month <- fish_ts %>% 
-  group_by_key() %>% 
-  index_by(yr_mo = ~yearmonth(.)) %>% # index by month to make seasonality clearer
-  summarise(monthly_mean_count = mean(count, na.rm = TRUE)) %>% 
-  mutate(species = recode(species, 
+### Insert map code here
+```
+
+
+### Original time series 
+
+```{r,  fig.cap = "**Figure 1**. Time series of adult passage for Coho (teal), Jack Coho (magenta), and Steelhead (orange) salmon at Willamette Falls fish ladder on the Willamette River, Oregon between 2001-2010. Data: Columbia River DART. 2021."} 
+fish_labels <- c("Coho", "Jack Coho", "Steelhead")
+names(fish_labels) <- c("coho", "jack_coho", "steelhead")
+
+ggplot(data = fish_ts, 
+       aes(x = date, 
+           y = count)) +
+  geom_line(aes(color = species)) +
+  facet_grid(species~., 
+             scales = "free",
+             labeller = labeller(species = fish_labels)) +
+  scale_color_manual(values=c("cadetblue4", "mediumvioletred", "orange")) +
+  labs(x = "\nYear",
+       y = "Adult Salmon Count",
+       title = "Salmon Adult Passage at Willamette Falls, OR\n") +
+  theme_minimal() +
+  theme(legend.position = "none",
+       axis.title = element_text(face = "bold", size = 12),
+      plot.title = element_text(face = "bold", size = 12))
+```
+
+- Coho salmon passage fluctuated between lower and higher counts every couple years before greatly increasing in 2009-2010, doubling in counts from 2008. 
+- Jack coho salmon passage was the lowest out of the three species, with very low counts in 2007 before reaching a peak at the end of 2008. They also fluctuated between lower and higher counts every few years. 
+- Steelhead salmon passage remained relatively stable between 2001-2010.
+
+
+### Seasonplots
+
+```{r fig.cap = "**Figure 2**. Mean count of adult Coho, Jack Coho, and Steelhead passage at the Willamette fish ladder between 2001-2010. Data: Columbia River DART. 2021."}
+
+fish_month <- fish_ts %>%
+  group_by_key() %>% #key = species
+  index_by(yr_mo = ~yearmonth(.)) %>% # group by time index year month
+  summarise(monthly_mean_count = mean(count, na.rm = TRUE)) %>% # mean count for each month 
+  mutate(species = recode(species,
                           coho = "Coho",
                           jack_coho = "Jack Coho",
                           steelhead = "Steelhead"))
 
+
+
 fish_month %>% 
-  gg_season(y = monthly_mean_count)+
+  gg_season(y = monthly_mean_count, 
+            pal = (brewer.pal(10, "Paired" ))) +
   labs(x = "Month",
        y = "Mean monthly count", 
-       title = "Average monthly count of adult fish passage for Willamette fish ladder")+
-  theme_minimal()  
+       title = "Average monthly count of adult fish passage for Willamette fish ladder",
+       color = "Year") +
+  theme_minimal() +  
+  theme(axis.title = element_text(face = "bold", size = 12),
+        plot.title = element_text(face = "bold", size = 12),
+        strip.text = element_text( size = 12))
+
+
 ```
+- Steelhead passage at the Willamette fish ladder begins in December, and peaks in late spring/early summer with May and June being the months with the highest mean count. In July, the number of Steelhead counted decreases and remains low through the end of fall. 
+- Coho and Jack Coho passage occurs during  the fall months of September and October, with the highest mean counts occurring in September. Little to no Coho or Jack Coho are counted after November.  
 
 
-## Annual counts by species 
+### Summary statistics and analysis 
+
+```{r, fig.cap = "**Figure 3**. Annual totals of adult passage for Coho, Jack Coho, and Steelhead salmon at Willamette Falls fish ladder on the Willamette River, Oregon between 2001-2010. Data: Columbia River DART. 2021."}
+
+fish_annual <- fish_ts %>% 
+  group_by_key() %>% 
+  index_by(yr = ~year(.)) %>% # index by year
+  summarise(annual_total = sum(count)) %>%  # get annual totals
+  mutate(year = factor(yr)) # convert year to a factor
+
+ggplot(data = fish_annual, 
+       aes(x = year, 
+           y = annual_total)) +
+  geom_col(aes(fill = annual_total)) + # 
+  scale_fill_viridis_c(option = "viridis") +
+  facet_grid(species~., 
+             scales = "free",
+             labeller = labeller(species = fish_labels)) +
+  labs(title = "Annual counts by species",
+       x = "Year",
+       y = "Annual totals",
+       fill = "Annual totals") +
+  theme_minimal() +
+  theme(axis.title = element_text(face = "bold", size = 12),
+        strip.text.y = element_text(face = "bold", size = 12),
+        axis.text.y = element_text(face = "bold", size = 10),
+        axis.text.x = element_text(face = "bold", size = 11),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.text = element_text(face = "bold", size = 10),
+        legend.title = element_text(face = "bold", size = 10.5),
+        plot.title = element_text(face = "bold", size = 14)
+        )
+
+```
 
 
 
