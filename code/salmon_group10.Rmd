@@ -145,7 +145,7 @@ ggplot(data = fish_ts,
 ```
 
 - Coho salmon passage fluctuated between lower and higher counts every couple years before greatly increasing in 2009-2010, doubling in counts from 2008. 
-- Jack coho salmon passage was the lowest out of the three species, with very low counts in 2007 before reaching a peak at the end of 2008. They also fluctuated between lower and higher counts every few years. 
+- Jack Coho salmon passage was the lowest out of the three species, with very low counts in 2007 before reaching a peak at the end of 2008.
 - Steelhead salmon passage remained relatively stable between 2001-2010.
 
 
