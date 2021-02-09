@@ -62,14 +62,18 @@ This report includes is a time series of adult salmon passage, seasonplots of pa
 
 The data used in this report was accessed from  [Columbia River DART (Data Access in Real Time)](http://www.cbr.washington.edu/dart/query/adult_graph_text).  Columbia River DART is a data resource compiling information relating to the Columbia Basin salmon populations and environmental river conditions from federal, state, and tribal databases.
 
-```{r}
-
-## citing ggmap
-#  D. Kahle and H. Wickham. ggmap: Spatial Visualization with ggplot2. The R Journal, 5(1), 144-161. URL
-# http://journal.r-project.org/archive/2013-1/kahle-wickham.pdf
+```{r,  fig.cap = "**Map 1:** USA, **Map 2:** Oregon, **Map 3:** Clackamas County, **Map 4:** Zoomed in map of location of fish ladder on the Willamette River" }
 
 states <- map_data("state") # map data of states
 counties <- map_data("county") # map data of counties
+
+states_oregon <- states %>%
+  mutate( # create new column to map the oregon
+    oregon_or_not = case_when(
+      region == "oregon" ~ "oregon",
+      region != "oregon" ~ "other"
+    )
+  )
 
 oregon <- states %>% 
   filter(region == "oregon") # filter for oregon
@@ -82,7 +86,14 @@ oregon_counties <- counties %>%
       subregion != "clackamas" ~ "other"
     ))
   
-
+## Map of USA
+usa_gg <- ggplot(data = states_oregon, aes( x = long, y = lat, group = group)) +
+  geom_polygon(aes(fill = oregon_or_not), color = "white") +
+  scale_fill_manual(values = c("forestgreen", "gray71")) +
+  coord_fixed(1.3) +
+  ggmap::theme_nothing()
+  
+## Map of Oregon
 oregon_gg <- ggplot(data = oregon, aes(x = long,
                                        y = lat,
                                        group = group)) +
@@ -90,10 +101,10 @@ oregon_gg <- ggplot(data = oregon, aes(x = long,
   geom_polygon(color = "black") +
   ggmap::theme_nothing() +
   geom_polygon(data = oregon_counties, aes(fill = clack_or_not), color = "white") +
-  scale_fill_manual(values = c("turquoise3", "forestgreen")) +
-  geom_polygon(color = "black", fill = NA) 
+  scale_fill_manual(values = c("salmon", "forestgreen")) +
+  geom_polygon(color = "white", fill = NA) 
   
-
+## Get location of the fish ladder, add picture of fish
 location_ladder <- data.frame(long = -122.6197271, # obtained from google maps
                               lat = 45.3511544,
                               image = here("images", "coho.png"))  
@@ -101,22 +112,59 @@ location_ladder <- data.frame(long = -122.6197271, # obtained from google maps
 clackamas <- counties %>% 
   filter(subregion == "clackamas") # extract county fish ladder is in
 
-clack_gg <- ggplot(data = clackamas, aes(x = long, 
-                                       y = lat)) +
+## Map of Clackamas County
+clack_gg <- ggplot(data = clackamas, aes(x = long,
+                                         y = lat)) +
   coord_fixed(1.3) +
-  geom_polygon(color = "black", fill = "turquoise3") +
+  geom_polygon(color = "black", fill = "salmon") +
   ggmap::theme_nothing() +
-  geom_polygon(color = "black", fill = NA) +
-  geom_image(data = location_ladder, aes(x = long,
-                                         y = lat,
-                                         image = image),
-             size = 0.1) 
+  geom_polygon(color = "white", fill = NA) +
+  geom_image(
+    data = location_ladder,
+    aes(x = long,
+        y = lat,
+        image = image),
+    size = 0.15,
+    asp = 2
+  ) 
+
+## Get map of fish ladder for ggmap
+longs <- seq(-122.65, -122.55, by = 0.01)
+lats <- seq(45.3, 45.4, by = 0.01)
+
+zoomed_in <- make_bbox(lon = longs, lat = lats, f = .05)
+wl_map <- get_map(location = zoomed_in,
+                  maptype = "satellite",
+                  source = "google") 
+
+## Map of Fish Ladder
+wl_gg <- ggmap(wl_map) +
+  geom_point(aes(x = -122.619727,
+                 y = 45.3511544)) +
+  geom_image(data = location_ladder,
+             aes(x = long,
+                 y = lat,
+                 image = image),
+             size = 0.2) +
+  ggmap::theme_nothing()
+
+## Combine maps with patchwork
+patchwork <- (usa_gg | oregon_gg) / (clack_gg | wl_gg) +
+  plot_annotation(title = "Location of Willamette Fish Ladder",
+                  subtitle = "Willamette Fish Ladder is represented by the fish",
+                  tag_levels = c('1'), tag_prefix = 'Map ', tag_suffix = ':') +
+  plot_layout(heights = c(1,1.5)) 
 
 
-clack_gg / (plot_spacer() + oregon_gg ) +
-  plot_annotation(title = "Map of Oregon State and Clackamas County",
-                  subtitle = "Willamette Fish Ladder is represented by the fish") +
-  plot_layout(heights = c(1.5,1))
+patchwork & theme(plot.background = element_rect(fill = "#222222",
+                                                 color = "#222222"),
+                  plot.title = element_text(color = "white"),
+                  plot.subtitle = element_text(color = "white"),
+                  plot.tag = element_text(color = "white",
+                                          size = 11))
+
+## Citation for ggmap
+#  D. Kahle and H. Wickham. ggmap: Spatial Visualization with ggplot2. The R Journal, 5(1), 144-161. URL http://journal.r-project.org/archive/2013-1/kahle-wickham.pdf
 
 ```
 
